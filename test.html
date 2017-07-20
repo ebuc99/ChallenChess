@@ -1,0 +1,130 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>ChallenTest</title>
+		<script src="tools.js"></script>
+		<script src="challenchess.js"></script>
+		<script>
+function getElementPosition(element) {
+	var x = 0;
+	var y = 0;
+	for (el = element; el; el = el.offsetParent) {
+		x += el.offsetLeft;
+		y += el.offsetTop;
+	}
+	return [x, y];
+}
+function repositionChessboard() {
+	var boardArea = document.getElementById("board_area");
+	var [aLeft, aTop] = getElementPosition(boardArea);
+	var aWidth = boardArea.offsetWidth;
+	var aHeight = boardArea.offsetHeight;
+	//alert("l="+aLeft+", t="+aTop+", w="+aWidth+", h="+aHeight);
+	var bLeft;
+	var bTop;
+	var bWidth;
+	var bHeight;
+	if (aWidth > aHeight) {
+		bWidth = aHeight;
+		bHeight = aHeight;
+		bLeft = aLeft + Math.floor(0.5*(aWidth-bWidth));
+		bTop = aTop;
+	} else {
+		bWidth = aWidth;
+		bHeight = aWidth;
+		bLeft = aLeft;
+		bTop = aTop + Math.floor(0.5*(aHeight-bHeight));
+	}
+	board = document.getElementById("board");
+	board.style.position = "absolute";
+	board.style.left = bLeft+"px";
+	board.style.top = bTop+"px";
+	board.style.width = bWidth+"px";
+	board.style.height = bHeight+"px";
+	board.style.display = "grid";
+}
+function initChessboard(xFields) {
+	repositionChessboard();
+	board = document.getElementById("board");
+	board.innerHTML = "";  // alten Inhalt löschen
+	board.classList.add("board"+xFields);
+	var blackWhiteOffset = xFields % 2;  // Feld unten links muss schwarz werden
+	for (var y = 0; y < xFields; ++y) {
+		for (var x = 0; x < xFields; ++x) {
+			var field = document.createElement("div");
+			field.classList.add("field");
+			field.classList.add(((x+y+blackWhiteOffset)%2==0) ? "white" : "black");
+			board.appendChild(field);
+		}
+	}
+}
+window.onresize = function(event) {
+	repositionChessboard();
+};
+		</script>
+		<style type="text/css">
+body {
+	margin: 0;
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	top: 10px;
+	bottom: 10px;
+	display: grid;
+	grid-template-rows: 5em 5em 1.5em 1fr;
+	grid-template-columns: 1fr;
+}
+.dash {
+	border: black 1px dashed;
+}
+.cell {
+	grid-column: auto / auto;
+	grid-row: auto / auto;
+}
+#board_area {
+	background-color: #cfcfcf;
+	border: black 1px dashed;
+	grid-column: 1 / span 1;
+	grid-row: 4 / span 1;
+}
+#board {
+	background-color: #7f7f7f;
+	color: white;
+	display: none;
+	position: absolute;
+}
+.board7 {
+	display: grid;
+	grid-template-rows: repeat(7, 1fr);
+	grid-template-columns: repeat(7, 1fr);
+}
+.board8 {
+	display: grid;
+	grid-template-rows: repeat(8, 1fr);
+	grid-template-columns: repeat(8, 1fr);
+}
+.field {
+	grid-column: auto / auto;
+	grid-row: auto / auto;
+}
+.field:hover {
+	border: #aaf 3px solid;
+}
+.black {
+	background-color: black;
+}
+.white {
+	background-color: white;
+}
+		</style>
+	</head>
+	<body onload="initDocument();initChessboard(8);">
+		<div class="dash cell">logo area</div>
+		<div class="dash cell">button area</div>
+		<div class="dash cell">status line</div>
+		<div id="board_area" class="dash cell">
+			board area
+			<div id="board">board</div>
+		</div>
+	</body>
+</html>
