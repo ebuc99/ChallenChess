@@ -5,42 +5,24 @@
 		<script src="tools.js"></script>
 		<script src="challenchess.js"></script>
 		<script>
-function getElementPosition(element) {
-	var x = 0;
-	var y = 0;
-	for (el = element; el; el = el.offsetParent) {
-		x += el.offsetLeft;
-		y += el.offsetTop;
-	}
-	return [x, y];
-}
 function repositionChessboard() {
-	var boardArea = document.getElementById("board_area");
-	var [aLeft, aTop] = getElementPosition(boardArea);
-	var aWidth = boardArea.offsetWidth;
-	var aHeight = boardArea.offsetHeight;
-	//alert("l="+aLeft+", t="+aTop+", w="+aWidth+", h="+aHeight);
-	var bLeft;
-	var bTop;
-	var bWidth;
-	var bHeight;
-	if (aWidth > aHeight) {
-		bWidth = aHeight;
-		bHeight = aHeight;
-		bLeft = aLeft + Math.floor(0.5*(aWidth-bWidth));
-		bTop = aTop;
+	var boardArea = getElementBounds(document.getElementById("board_area"));
+	var bLeft, bTop, bWidth, bHeight;
+	if (boardArea.width > boardArea.height) {
+		bWidth = bHeight = boardArea.height;
+		bLeft = boardArea.left + Math.floor(0.5*(boardArea.width-bWidth));
+		bTop = boardArea.top;
 	} else {
-		bWidth = aWidth;
-		bHeight = aWidth;
-		bLeft = aLeft;
-		bTop = aTop + Math.floor(0.5*(aHeight-bHeight));
+		bWidth = bHeight = boardArea.width;
+		bLeft = boardArea.left;
+		bTop = boardArea.top + Math.floor(0.5*(boardArea.height-bHeight));
 	}
 	board = document.getElementById("board");
 	board.style.position = "absolute";
 	board.style.left = bLeft+"px";
 	board.style.top = bTop+"px";
-	board.style.width = bWidth+"px";
-	board.style.height = bHeight+"px";
+	board.style.width = (bWidth-2)+"px";  // Randbreite abziehen
+	board.style.height = (bHeight-2)+"px";  // Randbreite abziehen
 	board.style.display = "grid";
 }
 function initChessboard(xFields) {
@@ -61,17 +43,34 @@ function initChessboard(xFields) {
 window.onresize = function(event) {
 	repositionChessboard();
 };
+function openMenu() {
+	var mmcl = document.getElementById("main_menu").classList;
+	mmcl.remove("moved_out");
+	mmcl.add("moved_in");
+	var plcl = document.getElementById("pause_layer").classList;
+	plcl.remove("not_faded");
+	plcl.add("faded");
+}
+function closeMenu() {
+	var mmcl = document.getElementById("main_menu").classList;
+	mmcl.remove("moved_in");
+	mmcl.add("moved_out");
+	var plcl = document.getElementById("pause_layer").classList;
+	plcl.remove("faded");
+	plcl.add("not_faded");
+}
 		</script>
 		<style type="text/css">
 body {
+	font: 12pt 'Segoe UI','DejaVu Sans',Calibri,Helvetica;
 	margin: 0;
 	position: absolute;
-	left: 10px;
-	right: 10px;
-	top: 10px;
-	bottom: 10px;
+	left: 0px;
+	right: 0px;
+	top: 0px;
+	bottom: 0px;
 	display: grid;
-	grid-template-rows: 5em 5em 1.5em 1fr;
+	grid-template-rows: 1.5em 1fr 1.5em;
 	grid-template-columns: 1fr;
 }
 .dash {
@@ -81,17 +80,14 @@ body {
 	grid-column: auto / auto;
 	grid-row: auto / auto;
 }
-#board_area {
-	background-color: #cfcfcf;
-	border: black 1px dashed;
-	grid-column: 1 / span 1;
-	grid-row: 4 / span 1;
+#menu_area {
+	text-align: center;
+	cursor: pointer;
 }
 #board {
-	background-color: #7f7f7f;
-	color: white;
 	display: none;
 	position: absolute;
+	border: #7f7f7f 1px solid;
 }
 .board7 {
 	display: grid;
@@ -106,25 +102,79 @@ body {
 .field {
 	grid-column: auto / auto;
 	grid-row: auto / auto;
+	padding: 1%;
 }
 .field:hover {
-	border: #aaf 3px solid;
+	border: #aaf 5px solid;
+	outline: none;
 }
 .black {
 	background-color: black;
+	outline: 1px solid white;
+	outline-offset: -2px;
 }
 .white {
 	background-color: white;
+	outline: 1px solid black;
+	outline-offset: -2px;
+}
+
+#main_menu {
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	height: 420px;
+	overflow: hidden;
+	border: white 3px solid;
+	font-weight: bold;
+	font-size: 24pt;
+	color: white;
+	padding: 50px;
+	text-align: center;
+	z-index: 42;
+}
+div.moved_out {
+	top: -526px;
+	transition: top 0.5s ease-in-out;
+}
+div.moved_in {
+	top: 0px;
+	transition: top 0.5s ease-in-out;
+}
+
+#pause_layer {
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	top: 0px;
+	background-color: black;
+	z-index: 41;
+	cursor: crosshair;
+}
+div.not_faded {
+	height: 0%;
+	opacity: 0;
+	transition: height 0s 0.5s, opacity 0.5s linear;
+}
+div.faded {
+	height: 100%;
+	opacity: 0.7;
+	transition: opacity 0.5s linear;
+}
+
+#status_line {
+	text-align: center;
 }
 		</style>
 	</head>
 	<body onload="initDocument();initChessboard(8);">
-		<div class="dash cell">logo area</div>
-		<div class="dash cell">button area</div>
-		<div class="dash cell">status line</div>
+		<div id="main_menu" class="moved_out">Menü <span onclick="closeMenu();" style="cursor:pointer">[X]</span></div>
+		<div id="pause_layer" class="not_faded" onclick="closeMenu();"></div>
+		<div id="menu_area" class="dash cell" onclick="openMenu();">· · ·</div>
 		<div id="board_area" class="dash cell">
 			board area
 			<div id="board">board</div>
 		</div>
+		<div id="status_line" class="dash cell">status line</div>
 	</body>
 </html>
